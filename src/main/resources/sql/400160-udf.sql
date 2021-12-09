@@ -1,0 +1,9 @@
+CREATE OR REPLACE FUNCTION g_BitAND (
+_i1 int,
+_i2 int)
+RETURNS int
+AS '
+BEGIN
+  RETURN _i1 & _i2;
+END;
+' IMMUTABLE LANGUAGE plpgsql;;
