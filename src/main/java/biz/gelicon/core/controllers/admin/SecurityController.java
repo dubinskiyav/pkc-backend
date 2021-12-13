@@ -4,6 +4,7 @@ import biz.gelicon.core.annotations.RestrictStoreToAudit;
 import biz.gelicon.core.model.admin.Proguser;
 import biz.gelicon.core.repository.admin.ProguserRepository;
 import biz.gelicon.core.response.TokenResponse;
+import biz.gelicon.core.response.exceptions.IncorrectAuthenticationTypeException;
 import biz.gelicon.core.response.exceptions.IncorrectUserOrPasswordException;
 import biz.gelicon.core.security.UserCredential;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,13 +23,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 //TODO  все методы контроллера должны быть защищены от brute-force
 @RestController
-@Tag(name = "Безопасность", description = "Контроллер для управления токенами и функциями, не требующими авторизации  " +
-        "Контроллер находится в неавторизированной зоне.")
+@Tag(name = "Безопасность", description =
+        "Контроллер для управления токенами и функциями, не требующими авторизации  " +
+                "Контроллер находится в неавторизированной зоне.")
 @RequestMapping(value = "/security",
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
 @Transactional
 public class SecurityController {
+
     private static final Logger logger = LoggerFactory.getLogger(SecurityController.class);
 
     @Autowired
@@ -38,6 +41,12 @@ public class SecurityController {
     private String aeskey;
     @Value("${gelicon.core.frontend}")
     private String frontendBaseAddress;
+
+    /**
+     * Тип аутентификации 1 - Обычная, пароль хранится в proguser_webpassword
+     */
+    @Value("${gelicon.authentication_type:0}")
+    private Integer authenticationType;
 
     protected static String token = "e9b3c034-fdd5-456f-825b-4c632f2053ac"; //SYSDBA
 
@@ -49,19 +58,24 @@ public class SecurityController {
     public TokenResponse getToken(@RequestBody UserCredential credential) {
         // Пользователи из переданного логина
         Proguser pu = proguserRepository.findByUserName(credential.getUserName());
-        if(pu == null) {
+        if (pu == null) {
             throw new IncorrectUserOrPasswordException();
         }
         // todo - сделать
-        // Втупую пароль проверим
-        if (!pu.getProguserWebPassword().trim().equals(credential.getPassword())) {
-            throw new IncorrectUserOrPasswordException();
+        switch (authenticationType) {
+            case 0:
+                // Втупую пароль проверим
+                if (!pu.getProguserWebPassword().trim().equals(credential.getPassword())) {
+                    throw new IncorrectUserOrPasswordException();
+                }
+                return new TokenResponse(
+                        token,
+                        pu.getProguserFullName(),
+                        pu.getProguserName()
+                );
+            default:
+                throw new IncorrectAuthenticationTypeException();
         }
-        return new TokenResponse(
-                token,
-                pu.getProguserFullName(),
-                pu.getProguserName()
-        );
     }
 
 

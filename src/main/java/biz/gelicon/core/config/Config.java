@@ -101,6 +101,7 @@ public class Config {
     // Логировать SQL запросы
     @Value("${gelicon.orm.showSQL:false}")
     private boolean showSQL;
+
     @Bean
     public Boolean getShowSQLFlag() {
         return showSQL;
@@ -109,11 +110,11 @@ public class Config {
     // FireBird версии 2.5 и ниже
     @Value("${gelicon.firebirdsql25:false}")
     private Boolean firebirdsql25;
+
     @Bean
     public Boolean isFirebirdsql25() {
         return firebirdsql25;
     }
-
 
 
 }
