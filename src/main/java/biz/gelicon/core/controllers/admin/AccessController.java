@@ -4,6 +4,7 @@ import biz.gelicon.core.config.Config;
 import biz.gelicon.core.model.admin.Proguser;
 import biz.gelicon.core.repository.admin.ProguserRepository;
 import biz.gelicon.core.response.DataResponse;
+import biz.gelicon.core.security.AuthenticationBean;
 import biz.gelicon.core.security.UserDetailsImpl;
 import biz.gelicon.core.service.BaseService;
 import biz.gelicon.core.service.admin.ApplicationService;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,11 +32,14 @@ public class AccessController {
     private static final Logger logger = LoggerFactory.getLogger(AccessController.class);
 
     @Autowired
+    private AuthenticationBean authenticationBean;
+    @Autowired
     private ApplicationService applicationService;
 
     @Operation(summary = "Список объектов 'Модуль', доступных текущему пользователю",
             description = "Возвращает список объектов 'Модуль', доступных текущему пользователю. " +
                     "Метод работает только для авторизированных пользователей")
+    @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "applicationrole/accesslist", method = RequestMethod.POST)
     public DataResponse<ApplicationView> getAccessList(Authentication authentication) {
         Proguser pu = ((UserDetailsImpl) authentication.getPrincipal()).getProgUser();

@@ -1,6 +1,5 @@
 package biz.gelicon.core.controllers.admin;
 
-import biz.gelicon.core.annotations.RestrictStoreToAudit;
 import biz.gelicon.core.model.admin.Proguser;
 import biz.gelicon.core.repository.admin.ProguserRepository;
 import biz.gelicon.core.response.TokenResponse;
@@ -68,11 +67,12 @@ public class SecurityController {
                 if (!pu.getProguserWebPassword().trim().equals(credential.getPassword())) {
                     throw new IncorrectUserOrPasswordException();
                 }
-                return new TokenResponse(
+                TokenResponse tr = new TokenResponse(
                         token,
-                        pu.getProguserFullName(),
-                        pu.getProguserName()
+                        pu.getProguserFullName().trim(),
+                        pu.getProguserName().trim()
                 );
+                return tr;
             default:
                 throw new IncorrectAuthenticationTypeException();
         }
